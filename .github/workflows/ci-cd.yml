@@ -1,0 +1,78 @@
+name: React Native CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  # Manual trigger for debugging
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        description: 'Enable debug mode'
+        required: false
+        default: false
+        type: boolean
+
+# Environment variables for the entire workflow
+env:
+  NODE_VERSION: '20.x'
+  JAVA_VERSION: '21'
+
+jobs:
+  # Job 1: Code Quality & Testing
+  test:
+    name: 'Test & Lint'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Debug - Print environment info
+      if: ${{ github.event.inputs.debug_enabled == 'true' }}
+      run: |
+        echo "🔍 Debug mode enabled"
+        echo "Node version: $(node --version)"
+        echo "NPM version: $(npm --version)"
+        echo "Working directory: $(pwd)"
+        echo "Files in directory:"
+        ls -la
+        echo "Git branch: ${{ github.ref }}"
+        echo "Git commit: ${{ github.sha }}"
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Debug - Verify package.json
+      if: ${{ github.event.inputs.debug_enabled == 'true' }}
+      run: |
+        echo "📦 Package.json contents:"
+        cat package.json
+        echo "🔍 React Native version:"
+        npm list react-native || echo "React Native not found in package.json"
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        # Verify key dependencies are installed
+        npm list react-native @reduxjs/toolkit
+
+    - name: Run TypeScript check
+      run: npx tsc --noEmit
+
+    - name: Run ESLint
+      run: npx eslint . --ext .js,.jsx,.ts,.tsx --max-warnings 0
+
+    - name: Run tests
+      run: npm test -- --coverage --watchAll=false
+
+    - name: Upload coverage to Codecov (optional)
+      if: success()
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false
