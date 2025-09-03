@@ -1,4 +1,12 @@
 {
+  "compilerOptions": {
+    "strict": true,
+    "moduleDetection": "auto",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipDefaultLibCheck": true,
+    "resolveJsonModule": true
+  },
   "extends": "@react-native/typescript-config",
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["**/node_modules", "**/Pods"]
