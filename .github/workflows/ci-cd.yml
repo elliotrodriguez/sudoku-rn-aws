@@ -211,7 +211,7 @@ jobs:
           build
 
     - name: Archive iOS build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ios-simulator-build
         path: ios/build/Build/Products/Debug-iphonesimulator/
